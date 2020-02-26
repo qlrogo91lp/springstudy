@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.zerock.mapper.BoardMapper">	
+	<sql id="search">
+		<if test="searchType != null">
+			<if test="searchType == 't'.toString()" >
+				and title like CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="searchType == 'c'.toString()" >
+				and title like CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="searchType == 'w'.toString()" >
+				and title like CONCAT('%', #{keyword}, '%')
+			</if>
+			<if test="searchType == 'tc'.toString()" >
+				and (title like CONCAT('%', #{keyword}, '%') or content like CONCAT('%', #{keyword}, '%'))
+			</if>
+			<if test="searchType == 'cw'.toString()" >
+				and (content like CONCAT('%', #{keyword}, '%') or writer like CONCAT('%', #{keyword}, '%'))
+			</if>
+			<if test="searchType == 'tcw'.toString()" >
+				and (title like CONCAT('%', #{keyword}, '%') 
+					or content like CONCAT('%', #{keyword}, '%')
+					or writer like CONCAT('%', #{keyword}, '%'))
+			</if>
+		</if>
+	</sql>
+	<insert id="create">
+		insert into tbl_board (
+			title 
+			,content
+			,writer
+		) values (
+			#{title}
+			,#{content}
+			,#{writer}
+		)
+	</insert>
+	<select id="read" resultType="BoardVO">
+		select		bno
+					,title
+					,content
+					,writer
+					,regdate
+					,viewcnt
+		from		tbl_board
+		where		1=1
+		and			bno = #{bno}
+	</select>
+	<update id="update">
+		update		tbl_board
+		set			title 	 = #{title}
+					,content = #{content}
+		where		1=1
+		and			bno = #{bno}
+	</update>
+	<delete id="delete">
+		delete from tbl_board where bno = #{bno}
+	</delete>
+	<select id="listAll" resultType="BoardVO">
+		<![CDATA[
+			select	bno
+					,title
+					,content
+					,writer
+					,regdate
+					,viewcnt
+			from	tbl_board
+			where	1=1
+			and		bno > 0
+			order by bno desc, regdate desc
+		]]>
+	</select>
+	<!-- 한 페이지에 나오는 게시글 목록(10개 고정) -->
+	<select id="listPage" resultType="BoardVO">
+		<![CDATA[
+			select
+				bno, title, content, writer, regdate, viewcnt
+			from
+				tbl_board
+			where 	1=1
+			and		bno > 0
+			order by bno desc, regdate desc
+			limit #{page}, 10
+		]]>
+	</select>
+	<!-- 한 페이지의 보여줄 게시글의 수가 가변적 -->
+	<select id="listCriteria" resultType="BoardVO">
+		<![CDATA[
+			select
+				bno, title, content, writer, regdate, viewcnt
+			from
+				tbl_board
+			where 	1=1
+			and		bno > 0
+			order by bno desc, regdate desc
+			limit #{pageStart}, #{perPageNum}
+		]]>
+	</select>
+	<!-- 검색 기능 추가 -->
+	<select id="listSearch" resultType="BoardVO">
+		<![CDATA[
+			select	* 
+			from	tbl_board
+			where	1=1
+			and		bno > 0
+		]]>
+			<!-- 코드 재사용 -->
+			<include refid="search"></include>
+		<![CDATA[
+			order by bno desc, regdate desc
+			limit #{pageStart}, #{perPageNum}
+		]]>
+	</select>
+	<select id="countPaging" resultType="int">
+	<![CDATA[
+		select
+			count(bno)
+		from
+			tbl_board
+		where	1=1
+		and		bno > 0
+	]]>
+	</select>
+	<select id="listSearchCount" resultType="int">
+	<![CDATA[
+		select	count(bno)	
+		from	tbl_board
+		where	1=1
+		and		bno > 0
+	]]>
+		<!-- 코드 재사용 -->
+		<include refid="search"></include>
+	</select>
+</mapper>
